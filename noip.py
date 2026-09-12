@@ -222,7 +222,12 @@ def synchronize(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--zone", default="gluglu.app")
-    parser.add_argument("--record", default="@")
+    parser.add_argument(
+        "--record",
+        action="append",
+        dest="records",
+        help="record name to synchronize; may be repeated",
+    )
     parser.add_argument("--ttl", type=int, default=600, help="TTL used when creating a record")
     parser.add_argument("--token-file", default="/etc/noip/godaddy.pat")
     parser.add_argument("--lock-file", default="/run/lock/noip-godaddy.lock")
@@ -233,6 +238,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("--ttl must be between 600 and 86400")
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero")
+    if not args.records:
+        args.records = ["@", "pandora", "auth"]
+    args.records = list(dict.fromkeys(args.records))
     return args
 
 
@@ -247,9 +255,13 @@ def run(args: argparse.Namespace, http_factory: Callable[[float], HTTPClient] = 
         http = http_factory(args.timeout)
         address = discover_public_ipv4(http)
         dns = GoDaddyDNS(token, http)
-        return synchronize(
-            dns, args.zone, args.record, address, args.ttl, dry_run=args.dry_run
-        )
+        messages = [
+            synchronize(
+                dns, args.zone, record, address, args.ttl, dry_run=args.dry_run
+            )
+            for record in args.records
+        ]
+        return "\n".join(message for message in messages if message)
 
 
 def main(argv: list[str] | None = None) -> int:

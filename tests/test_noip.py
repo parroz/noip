@@ -136,5 +136,17 @@ class SecretTests(unittest.TestCase):
             os.unlink(path)
 
 
+class ArgumentTests(unittest.TestCase):
+    def test_default_records(self):
+        args = noip.parse_args([])
+        self.assertEqual(args.records, ["@", "pandora", "auth"])
+
+    def test_records_can_be_repeated_and_duplicates_are_removed(self):
+        args = noip.parse_args(
+            ["--record", "@", "--record", "pandora", "--record", "@"]
+        )
+        self.assertEqual(args.records, ["@", "pandora"])
+
+
 if __name__ == "__main__":
     unittest.main()

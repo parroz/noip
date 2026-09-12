@@ -1,8 +1,9 @@
 # GoDaddy dynamic DNS updater
 
-This small, dependency-free Python program keeps the apex `A` record for
-`gluglu.app` synchronized with the public IPv4 address of the machine running it.
-It is intended to run from cron on a Debian host behind NAT.
+This small, dependency-free Python program keeps the `A` records for
+`gluglu.app`, `pandora.gluglu.app`, and `auth.gluglu.app` synchronized with the
+public IPv4 address of the machine running it. It is intended to run from cron
+on a Debian host behind NAT.
 
 The updater:
 
@@ -52,6 +53,13 @@ schedule. To choose another schedule, reinstall with a five-field cron value:
 
 ```sh
 sudo ./deploy/install.sh --schedule '*/10 * * * *'
+```
+
+Record names can also be selected explicitly by repeating `--record`. Omitting
+the option installs the three defaults (`@`, `pandora`, and `auth`):
+
+```sh
+sudo ./deploy/install.sh --record @ --record pandora --record auth
 ```
 
 Cron sends updater output to syslog under the tag `noip-godaddy`. On systems
